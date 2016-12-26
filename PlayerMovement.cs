@@ -187,16 +187,16 @@ public class PlayerMovement : MonoBehaviour {
         }
 
         // Slow Gravity during long jumps (for better horizontal movement)
-        if (jumpHeld && rb.velocity.y < 0.0f)
+        if (jumpHeld /*&& rb.velocity.y < 0.0f*/)
         {
-            rb.gravityScale = gravityScale * 3.0f;
+            rb.gravityScale = gravityScale * 1.5f;
             gravityAltered = true;
             Debug.Log("Gravity Altered");
         }
 
-        if (jumpHeld && rb.velocity.y < 0.0f && isSprinting)
+        if (jumpHeld /*&& rb.velocity.y < 0.0f*/ && isSprinting)
         {
-            rb.gravityScale = gravityScale * 3.0f;
+            rb.gravityScale = gravityScale * 1.5f;
             gravityAltered = true;
             Debug.Log("Gravity Altered");
         }
