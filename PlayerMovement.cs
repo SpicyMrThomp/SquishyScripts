@@ -14,6 +14,7 @@ public class PlayerMovement : MonoBehaviour {
     public float normalSpeed;
     public float sprintSpeed;
     public float jumpForce;
+    public float sprintJumpForce;
     public float wallPushForce;
     public float pointRadius;
     public float wallSlide;
@@ -28,6 +29,7 @@ public class PlayerMovement : MonoBehaviour {
     public bool isTouchingWall;
     public bool isAttatchedToWall;
     public float gravityScale;
+    public float gravityAlter;
     public bool gravityAltered;
     public bool canJump;
     public bool onMovingPlatform;
@@ -62,8 +64,8 @@ public class PlayerMovement : MonoBehaviour {
 
     void Update()
     {
-        horizontalAxis = Input.GetAxisRaw("Horizontal");
-        verticalAxis = Input.GetAxisRaw("Vertical");
+        horizontalAxis = Input.GetAxis("Horizontal");
+        verticalAxis = Input.GetAxis("Vertical");
         sprintAxis = Input.GetAxis("Sprint");
 
         if (Input.GetButtonDown("Jump"))
@@ -111,8 +113,9 @@ public class PlayerMovement : MonoBehaviour {
 
     void DetectMovement()
     {
-        IsGrounded();
-        IsTouchingWall();
+        isGrounded = IsGrounded();
+        isTouchingWall = IsTouchingWall();
+
         if (!isAttatchedToWall)
         {
             rb.velocity = new Vector2((horizontalAxis * speed), rb.velocity.y);
@@ -147,19 +150,31 @@ public class PlayerMovement : MonoBehaviour {
         {
             isAttatchedToWall = false;
         }
-
+        
+        //Wall Stick/Slide
         if (isAttatchedToWall)
         {
-            //Moves Player Slightly Down when moving at wall
-            if (isSprinting)
+            bool stuck;
+            if ((isRight && horizontalAxis > 0) || (isLeft && horizontalAxis < 0))
             {
-                moveDirection = new Vector2(0, -wallSlide);
+                rb.velocity = new Vector2(0, 0);
+                Debug.Log("Stuck");
+                stuck = true;
             }
             else
             {
-                moveDirection = new Vector2(0, ((-wallSlide) * 2.0f));
+                stuck = false;
             }
-            rb.velocity = moveDirection;
+
+            //Moves Player Slightly Down when moving at wall
+            if (isSprinting && !stuck)
+            {
+                rb.velocity = new Vector2(0, -wallSlide);
+            }
+            else if(!isSprinting && !stuck)
+            {
+                rb.velocity = new Vector2(0, ((-wallSlide) * 2.0f));
+            }
         }
     }
 
@@ -182,21 +197,13 @@ public class PlayerMovement : MonoBehaviour {
 
         if (jumpUp && rb.velocity.y > 0)
         {
-            //rb.velocity = new Vector2((Input.GetAxis("Horizontal") * speed), rb.velocity.y * -.5f);
             rb.velocity = Vector3.zero;
         }
 
         // Slow Gravity during long jumps (for better horizontal movement)
-        if (jumpHeld /*&& rb.velocity.y < 0.0f*/)
+        if (jumpHeld)
         {
-            rb.gravityScale = gravityScale * 1.5f;
-            gravityAltered = true;
-            Debug.Log("Gravity Altered");
-        }
-
-        if (jumpHeld /*&& rb.velocity.y < 0.0f*/ && isSprinting)
-        {
-            rb.gravityScale = gravityScale * 1.5f;
+            rb.gravityScale = gravityScale * gravityAlter;
             gravityAltered = true;
             Debug.Log("Gravity Altered");
         }
@@ -222,7 +229,7 @@ public class PlayerMovement : MonoBehaviour {
     {
         if (isSprinting)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce + 2);
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce + 1);
             canJump = false;
         }
         else
@@ -234,49 +241,30 @@ public class PlayerMovement : MonoBehaviour {
 
     void WallJump()
     {
-        if (isRight && !(horizontalAxis >= 0))
+        if (isRight)
         {
             FlipLeft();
-            //rb.velocity = new Vector2(0, 0);
-            rb.velocity = new Vector2((horizontalAxis * wallPushForce), (verticalAxis * wallPushForce));
+            rb.velocity = new Vector2((-.75f * wallPushForce), (verticalAxis * wallPushForce));
             canJump = false;
 
         }
-        else if(isLeft && !(horizontalAxis <= 0))
+        else if (isLeft)
         {
             FlipRight();
-            //rb.velocity = new Vector2(0, 0);
-            rb.velocity = new Vector2((horizontalAxis * wallPushForce), (verticalAxis * wallPushForce));
+            rb.velocity = new Vector2((.75f * wallPushForce), (verticalAxis * wallPushForce));
             canJump = false;
         }
+        moveDirection = rb.velocity;
     }
 
     bool IsGrounded()
     {
-        if (Physics2D.OverlapCircle(groundPoint.position, pointRadius, groundMask))
-        {
-            isGrounded = true;
-            return true;
-        }
-        else
-        {
-            isGrounded = false;
-            return false;
-        }
+        return (Physics2D.OverlapCircle(groundPoint.position, pointRadius, groundMask));
     }
 
     bool IsTouchingWall()
     {
-        if (Physics2D.OverlapCircle(rightWallPoint.position, pointRadius, groundMask))
-        {
-            isTouchingWall = true;
-            return true;
-        }
-        else
-        {
-            isTouchingWall = false;
-            return false;
-        }
+        return (Physics2D.OverlapCircle(rightWallPoint.position, pointRadius, groundMask));
     }
 
     void UndoGravityChange()

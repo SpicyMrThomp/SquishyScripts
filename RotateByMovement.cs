@@ -5,6 +5,7 @@ using UnityEngine;
 public class RotateByMovement : MonoBehaviour {
 
     private Transform myTransform;
+    private PlayerMovement move;
     public float speedMultiplier;
     public float speed;
 
@@ -12,19 +13,20 @@ public class RotateByMovement : MonoBehaviour {
 	void Start ()
     {
         myTransform = transform;
-        speed = myTransform.parent.GetComponentInParent<PlayerMovement>().speed;
+        move = GetComponentInParent<PlayerMovement>();
+        speed = move.speed;
 	}
 	
 	// Update is called once per frame
 	void Update ()
     {
-        if (Input.GetAxisRaw("Horizontal") > 0)
+        if (move.horizontalAxis > 0 && !move.isAttatchedToWall)
         {
-            myTransform.Rotate(0, 0, (Input.GetAxisRaw("Horizontal") * Time.deltaTime * speed * speedMultiplier) * -1);
+            myTransform.Rotate(0, 0, (move.horizontalAxis * Time.deltaTime * speed * speedMultiplier) * -1);
         }
-        if (Input.GetAxisRaw("Horizontal") < 0)
+        if (move.horizontalAxis < 0 && !move.isAttatchedToWall)
         {
-            myTransform.Rotate(0, 0, (Input.GetAxisRaw("Horizontal") * Time.deltaTime * speed * speedMultiplier));
+            myTransform.Rotate(0, 0, (move.horizontalAxis * Time.deltaTime * speed * speedMultiplier));
         }
     }
 }
