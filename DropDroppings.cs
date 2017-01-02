@@ -25,5 +25,5 @@ public class DropDroppings : MonoBehaviour {
             GameObject freshDroppings = Instantiate(droppings, myTransform.position, Quaternion.identity) as GameObject;
             currentTime = timer;
         }
-	}
+    }
 }
